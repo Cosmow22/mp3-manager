@@ -1,0 +1,12 @@
+LICENSE
+README.md
+setup.py
+mp3_manager/__init__.py
+mp3_manager/main.py
+mp3_manager/mp3_manager.py
+mp3_manager.egg-info/PKG-INFO
+mp3_manager.egg-info/SOURCES.txt
+mp3_manager.egg-info/dependency_links.txt
+mp3_manager.egg-info/entry_points.txt
+mp3_manager.egg-info/requires.txt
+mp3_manager.egg-info/top_level.txt
