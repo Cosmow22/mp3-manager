@@ -20,7 +20,7 @@ def table_content_is_modified(table_content, metavar):
 
     
 def scan(args):
-    mp3 = Path(args.path)
+    mp3 = Path.cwd() / args.path
     fp = open(Path.cwd()/"songs.csv", "w", newline="", encoding="utf-8")
 
     songs_writer = csv.writer(fp)
@@ -46,8 +46,8 @@ def scan(args):
 
 
 def edit(args):
-    mp3 = Path(args.path)
-    csv_file = Path.cwd()/args.csv
+    mp3 = Path.cwd() / args.path
+    csv_file = Path.cwd()/ args.csv
     csv_is_modified = False
     with open(csv_file, encoding="utf-8") as fp:
         songs_reader = csv.reader(fp)
@@ -92,7 +92,7 @@ def edit(args):
             
             
 def equalize(args):
-    mp3 = Path(args.path)
+    mp3 = Path.cwd() / args.path
     for music in mp3.rglob("*.mp3"):
         sound = AudioSegment.from_file(music)
         loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
