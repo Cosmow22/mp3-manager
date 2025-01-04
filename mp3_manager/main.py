@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from mp3_manager import scan, edit, equalize
+from .mp3_manager import scan, edit, equalize
 
 
 def cli():
