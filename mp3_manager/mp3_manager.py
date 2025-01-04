@@ -3,6 +3,8 @@ import csv
 from pathlib import Path
 from os.path import getctime
 from datetime import date
+from pydub import AudioSegment
+from pydub.utils import make_chunks
 
 
 def table_content_is_modified(table_content, metavar):
@@ -88,4 +90,15 @@ def edit(args):
             songs_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
             songs_writer.writerows(rows)
             
-mp3_path = None
+            
+def equalize(args):
+    mp3 = Path(args.path)
+    for music in mp3.rglob("*.mp3"):
+        sound = AudioSegment.from_file(music)
+        loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
+        print("\nloudness", loudness)
+        
+        equalized_sound = sound.apply_gain(-28 - loudness)
+        equalized_sound.export("music", format="mp3")
+        
+        print(f"{loudness} → {equalized_sound.dBFS}")
