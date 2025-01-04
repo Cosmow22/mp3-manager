@@ -1,3 +1,0 @@
-[console_scripts]
-mp3 = mp3_manager.main:cli
-
