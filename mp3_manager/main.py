@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from .mp3_manager import scan, edit, equalize
+from .mp3_manager import scan, edit, run_equalize
 
 
 def cli():
@@ -26,7 +26,7 @@ def cli():
     edit_parser.set_defaults(func=edit)
     
     equalize_parser = subparsers.add_parser("equalize", help="Equalize the volume of all musics.")
-    equalize_parser.set_defaults(func=equalize)
+    equalize_parser.set_defaults(func=run_equalize)
     
     args = parser.parse_args()
     args.func(args)

@@ -1,3 +1,4 @@
+import asyncio
 import eyed3
 import csv
 from pathlib import Path
@@ -90,15 +91,45 @@ def edit(args):
             songs_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
             songs_writer.writerows(rows)
             
-            
-def equalize(args):
+
+def print_to(line, music_name):
+    print(f"\033[{5-line}A", end="")  # move cursor up
+    print("\033[2K", end="")  # clear line
+    print(f"Thread {line}: {music_name}", end="\r")
+    print(f"\033[{5-line}B", end="")  # move cursor back
+
+
+def process_audio(music):
+    sound = AudioSegment.from_file(music)
+    loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
+    equalized_sound = sound.apply_gain(-28 - loudness)  # -28 is the target loudness
+    equalized_sound.export(music, format="mp3")
+
+
+async def run_equalize_coroutine(music: Path, semaphore: asyncio.Semaphore, thread_id: int):
+    async with semaphore: 
+        await asyncio.to_thread(process_audio, music)
+        print_to(thread_id, music.name)
+                
+async def equalize(args):
     mp3 = Path.cwd() / args.path
+    print("Thread 0: ...")
+    print("Thread 1: ...")
+    print("Thread 2: ...")
+    print("Thread 3: ...")
+    print("Thread 4: ...")
+    print('\033[?25l', end="")  # Hide cursor
+    thread_id = 0
+    semaphore = asyncio.Semaphore(5)
+    coroutines = []
     for music in mp3.rglob("*.mp3"):
-        sound = AudioSegment.from_file(music)
-        loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
-        print("\nloudness", loudness)
-        
-        equalized_sound = sound.apply_gain(-28 - loudness)
-        equalized_sound.export("music", format="mp3")
-        
-        print(f"{loudness} → {equalized_sound.dBFS}")
+        if thread_id == 4: thread_id = 0
+        else: thread_id += 1
+        coroutines.append(run_equalize_coroutine(music, semaphore, thread_id))
+    await asyncio.gather(*coroutines)
+    
+    print('\033[?25h', end="")  # Show cursor
+    print("\nDone !")
+
+def run_equalize(args):
+    asyncio.run(equalize(args))
