@@ -6,10 +6,8 @@ A simple cli to manage mp3 songs.
 pip install mp3-manager
 ```
 
-```Powershell
-mp3 -h
-
-usage: mp3 [-h] [-p PATH] {scan,edit,equalize} ...
+```
+usage: mp3 [-h] [-p PATH] [-csv CSV] [-dBFS DBFS] {scan,edit,equalize} ...
 
 A CLI to manage mp3.
 
@@ -21,7 +19,9 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -p PATH, --path PATH  The path to mp3
+  -p PATH, --path PATH  The path to mp3.
+  -csv CSV, --csv CSV   The path to csv file.
+  -dBFS DBFS            The desired sound level wanted. (default: -14)
 ```
 
 The csv file contains songs metadatas. Change them easily in your spreadsheet software.
