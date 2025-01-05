@@ -23,28 +23,24 @@ def table_content_is_modified(table_content, metavar):
     
 def scan(args):
     mp3 = Path.cwd() / args.path
-    fp = open(Path.cwd() / args.csv, "w", newline="", encoding="utf-8")
+    with open(Path.cwd() / args.csv, "w", newline="", encoding="utf-8") as fp:
+        musics_writer = csv.writer(fp)
+        musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
 
-    musics_writer = csv.writer(fp)
-    musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
-
-    for music in mp3.rglob("*.mp3"): 
-        with HiddenPrints(): audiofile = eyed3.load(music)
-        song_name = music.name[:-4]
-        if audiofile is None:
-            musics_writer.writerow([song_name])
-        else:
-            with HiddenPrints(): genre = audiofile.tag.genre.name if audiofile.tag.genre else None
-            musics_writer.writerow([
-                    song_name, 
-                    None,  # New Title
-                    audiofile.tag.artist, 
-                    audiofile.tag.album, 
-                    genre, 
-                    date.fromtimestamp(getctime(music)),
-                    audiofile.tag.track_num.count
-                    ])
-    fp.close()
+        for music in mp3.rglob("*.mp3"): 
+            with HiddenPrints(): audiofile = eyed3.load(music)
+            song_name = music.name[:-4]
+            if audiofile is not None:
+                with HiddenPrints(): genre = audiofile.tag.genre.name if audiofile.tag.genre else None
+                musics_writer.writerow([
+                        song_name, 
+                        None,  # New Title
+                        audiofile.tag.artist, 
+                        audiofile.tag.album, 
+                        genre, 
+                        date.fromtimestamp(getctime(music)),
+                        audiofile.tag.track_num.count
+                        ])
 
 
 def edit(args):
