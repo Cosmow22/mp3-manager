@@ -91,10 +91,12 @@ def edit(args):
             musics_writer.writerows(rows)
             
 
-def process_audio(music, target_dBFS):
+def process_audio(music: Path, target_dBFS: int):
     sound = AudioSegment.from_file(music)
     loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
-    equalized_sound = sound.apply_gain(target_dBFS - loudness)  # set dBFS to target_dBFS
+    gain = target_dBFS - loudness
+    if abs(gain) < 1: return
+    equalized_sound = sound.apply_gain(gain)  # set dBFS to target_dBFS
     
     with HiddenPrints(): 
         audiofile = eyed3.load(music)
