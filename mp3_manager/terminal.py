@@ -2,13 +2,15 @@ import os, sys
 
 
 class HiddenPrints:
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
+    """Hide errors from terminal."""
+    def __enter__(self):        
+        self._original_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
 
     def __exit__(self, *args):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
+        sys.stderr.close()
+        sys.stderr = self._original_stderr
+        
         
         
 def print_to(line, music_name):

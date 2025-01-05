@@ -6,6 +6,7 @@ from os.path import getctime
 from datetime import date
 from pydub import AudioSegment
 from pydub.utils import make_chunks
+from .terminal import HiddenPrints, print_to
 
 
 def table_content_is_modified(table_content, metavar):
@@ -27,14 +28,13 @@ def scan(args):
     musics_writer = csv.writer(fp)
     musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
 
-    for music in mp3.rglob("*.mp3"):
-        print(music)
-        audiofile = eyed3.load(music)
+    for music in mp3.rglob("*.mp3"): 
+        with HiddenPrints(): audiofile = eyed3.load(music)
         song_name = music.name[:-4]
         if audiofile is None:
             musics_writer.writerow([song_name])
         else:
-            genre = audiofile.tag.genre.name if audiofile.tag.genre else None
+            with HiddenPrints(): genre = audiofile.tag.genre.name if audiofile.tag.genre else None
             musics_writer.writerow([
                     song_name, 
                     None,  # New Title
@@ -56,11 +56,14 @@ def edit(args):
         rows = list(musics_reader)[1:]
         for index, row in enumerate(rows):
             filename = row[0] + ".mp3"
-            try:
-                audiofile = eyed3.load(mp3/filename)
-            except OSError:
-                print("failed to load the music", mp3/filename)
-                continue
+            with HiddenPrints(): 
+                try:
+                    audiofile = eyed3.load(mp3/filename)
+                except OSError:
+                    print("Failed to load", mp3/filename)
+                    continue
+                genre = audiofile.tag.genre.name if audiofile.tag.genre else None
+                                
             if audiofile is not None:
                 if table_content_is_modified(row[2], audiofile.tag.artist):
                     print(filename, f"artist: {audiofile.tag.artist} → '{row[2]}'")
@@ -71,7 +74,6 @@ def edit(args):
                     audiofile.tag.album = row[3]
                     audiofile.tag.save()
                 
-                genre = audiofile.tag.genre.name if audiofile.tag.genre else None
                 if table_content_is_modified(row[4], genre):
                     print(filename, f"genre: {genre} → '{row[4]}'")
                     audiofile.tag.genre = row[4]
@@ -93,18 +95,23 @@ def edit(args):
             musics_writer.writerows(rows)
             
 
-def print_to(line, music_name):
-    print(f"\033[{5-line}A", end="")  # move cursor up
-    print("\033[2K", end="")  # clear line
-    print(f"Thread {line}: {music_name}", end="\r")
-    print(f"\033[{5-line}B", end="")  # move cursor back
-
-
 def process_audio(music, target_dBFS):
     sound = AudioSegment.from_file(music)
     loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
     equalized_sound = sound.apply_gain(target_dBFS - loudness)  # set dBFS to target_dBFS
-    equalized_sound.export(music, format="mp3")
+    
+    with HiddenPrints(): 
+        audiofile = eyed3.load(music)
+        genre = audiofile.tag.genre.name if audiofile.tag.genre else None
+    equalized_sound.export(
+        music, 
+        format="mp3", 
+        tags={
+            "album": audiofile.tag.album,
+            "artist": audiofile.tag.artist,
+            "genre": genre,
+            }
+        )
 
 
 async def run_equalize_coroutine(music: Path, target_dBFS: int, semaphore: asyncio.Semaphore, thread_id: int):
