@@ -22,6 +22,7 @@ def cli():
         "-dBFS",
         help="The desired sound level wanted. (default: -14)",
         default=-14,
+        type=float,
         )
     subparsers = parser.add_subparsers()
     
