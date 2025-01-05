@@ -22,19 +22,19 @@ def table_content_is_modified(table_content, metavar):
     
 def scan(args):
     mp3 = Path.cwd() / args.path
-    fp = open(Path.cwd()/"songs.csv", "w", newline="", encoding="utf-8")
+    fp = open(Path.cwd() / args.csv, "w", newline="", encoding="utf-8")
 
-    songs_writer = csv.writer(fp)
-    songs_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
+    musics_writer = csv.writer(fp)
+    musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
 
     for song in mp3.rglob("*.mp3"):
         audiofile = eyed3.load(song)
         song_name = song.name[:-4]
         if audiofile is None:
-            songs_writer.writerow([song_name])
+            musics_writer.writerow([song_name])
         else:
             genre = audiofile.tag.genre.name if audiofile.tag.genre else None
-            songs_writer.writerow([
+            musics_writer.writerow([
                     song_name, 
                     None,  # New Title
                     audiofile.tag.artist, 
@@ -51,8 +51,8 @@ def edit(args):
     csv_file = Path.cwd()/ args.csv
     csv_is_modified = False
     with open(csv_file, encoding="utf-8") as fp:
-        songs_reader = csv.reader(fp)
-        rows = list(songs_reader)[1:]
+        musics_reader = csv.reader(fp)
+        rows = list(musics_reader)[1:]
         for index, row in enumerate(rows):
             filename = row[0] + ".mp3"
             try:
@@ -87,9 +87,9 @@ def edit(args):
                 
     if csv_is_modified:
         with open(csv_file, "w", newline="", encoding="utf-8") as fp:
-            songs_writer = csv.writer(fp)
-            songs_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
-            songs_writer.writerows(rows)
+            musics_writer = csv.writer(fp)
+            musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
+            musics_writer.writerows(rows)
             
 
 def print_to(line, music_name):
@@ -99,16 +99,16 @@ def print_to(line, music_name):
     print(f"\033[{5-line}B", end="")  # move cursor back
 
 
-def process_audio(music):
+def process_audio(music, target_dBFS):
     sound = AudioSegment.from_file(music)
     loudness = max(chunk.dBFS for chunk in make_chunks(sound, 60_000))
-    equalized_sound = sound.apply_gain(-28 - loudness)  # -28 is the target loudness
+    equalized_sound = sound.apply_gain(target_dBFS - loudness)  # set dBFS to target_dBFS
     equalized_sound.export(music, format="mp3")
 
 
-async def run_equalize_coroutine(music: Path, semaphore: asyncio.Semaphore, thread_id: int):
+async def run_equalize_coroutine(music: Path, target_dBFS: int, semaphore: asyncio.Semaphore, thread_id: int):
     async with semaphore: 
-        await asyncio.to_thread(process_audio, music)
+        await asyncio.to_thread(process_audio, music, target_dBFS)
         print_to(thread_id, music.name)
                 
 async def equalize(args):
@@ -125,7 +125,7 @@ async def equalize(args):
     for music in mp3.rglob("*.mp3"):
         if thread_id == 4: thread_id = 0
         else: thread_id += 1
-        coroutines.append(run_equalize_coroutine(music, semaphore, thread_id))
+        coroutines.append(run_equalize_coroutine(music, args.dBFS, semaphore, thread_id))
     await asyncio.gather(*coroutines)
     
     print('\033[?25h', end="")  # Show cursor
