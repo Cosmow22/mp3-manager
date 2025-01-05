@@ -20,7 +20,7 @@ def cli():
         )
     parser.add_argument(
         "-dBFS",
-        help="The path to csv file.",
+        help="The desired sound level wanted. (default: -14)",
         default=-14,
         )
     subparsers = parser.add_subparsers()
