@@ -6,7 +6,7 @@ class HiddenPrints:
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
 
-    def __exit__(self):
+    def __exit__(self, *args):
         sys.stdout.close()
         sys.stdout = self._original_stdout
         
