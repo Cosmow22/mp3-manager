@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mp3_manager",
-    version="2.0.0",
+    version="2.0.1",
     packages=find_packages(),
     install_requires=[
         "eyed3>=0.9.7",
