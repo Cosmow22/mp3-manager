@@ -98,13 +98,13 @@ def process_audio(music, target_dBFS):
     
     with HiddenPrints(): 
         audiofile = eyed3.load(music)
-        genre = audiofile.tag.genre.name if audiofile.tag.genre else None
+        genre = audiofile.tag.genre.name if audiofile.tag.genre else ""
     equalized_sound.export(
         music, 
         format="mp3", 
         tags={
-            "album": audiofile.tag.album,
-            "artist": audiofile.tag.artist,
+            "album": "" if audiofile.tag.album is None else audiofile.tag.album,
+            "artist": "" if audiofile.tag.artist is None else audiofile.tag.artist,
             "genre": genre,
             }
         )
