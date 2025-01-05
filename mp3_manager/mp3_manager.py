@@ -27,9 +27,10 @@ def scan(args):
     musics_writer = csv.writer(fp)
     musics_writer.writerow(["Title", "New Title", "Artist(s)", "Album","Genre", "Date added", "N°"])
 
-    for song in mp3.rglob("*.mp3"):
-        audiofile = eyed3.load(song)
-        song_name = song.name[:-4]
+    for music in mp3.rglob("*.mp3"):
+        print(music)
+        audiofile = eyed3.load(music)
+        song_name = music.name[:-4]
         if audiofile is None:
             musics_writer.writerow([song_name])
         else:
@@ -40,7 +41,7 @@ def scan(args):
                     audiofile.tag.artist, 
                     audiofile.tag.album, 
                     genre, 
-                    date.fromtimestamp(getctime(song)),
+                    date.fromtimestamp(getctime(music)),
                     audiofile.tag.track_num.count
                     ])
     fp.close()
@@ -58,7 +59,7 @@ def edit(args):
             try:
                 audiofile = eyed3.load(mp3/filename)
             except OSError:
-                print("failed to load the song", mp3/filename)
+                print("failed to load the music", mp3/filename)
                 continue
             if audiofile is not None:
                 if table_content_is_modified(row[2], audiofile.tag.artist):
